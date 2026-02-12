@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Akaruka Calendar",
-  description: "TimeTree風の洗練されたPWAカレンダーアプリ",
+  title: "あかるか日記",
+  description: "ふたりの思い出を彩る、共有カレンダー＆アルバムアプリ。",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Akaruka Calendar",
+    title: "あかるか日記",
   },
 };
 

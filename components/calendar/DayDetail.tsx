@@ -32,10 +32,11 @@ export default function DayDetail({
                 </h3>
                 <button
                     onClick={onAddEvent}
-                    className="rounded-full p-1 transition-colors hover:bg-muted active:bg-border"
+                    className="flex items-center gap-1.5 rounded-full bg-foreground px-4 py-1.5 text-xs font-bold text-white transition-all hover:opacity-90 active:scale-95"
                     aria-label="予定を追加"
                 >
-                    <PlusCircle size={24} className="text-foreground" />
+                    <PlusCircle size={16} strokeWidth={2.5} />
+                    <span>予定を追加</span>
                 </button>
             </div>
 

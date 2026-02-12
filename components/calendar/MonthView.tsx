@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { format, isSameDay, isToday, isSameMonth, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek } from "date-fns";
 import { ja } from "date-fns/locale";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { CalendarEvent } from "@/lib/types";
+
 
 interface MonthViewProps {
     month: Date;
@@ -12,6 +11,41 @@ interface MonthViewProps {
     events: CalendarEvent[];
     onDateSelect: (date: Date) => void;
     onMonthChange: (date: Date) => void;
+}
+
+function useSwipe(onSwipeLeft: () => void, onSwipeRight: () => void) {
+    const [touchStart, setTouchStart] = useState(0);
+    const [touchEnd, setTouchEnd] = useState(0);
+
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(0);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+        if (isLeftSwipe) {
+            onSwipeLeft();
+        }
+        if (isRightSwipe) {
+            onSwipeRight();
+        }
+    };
+
+    return {
+        onTouchStart,
+        onTouchMove,
+        onTouchEnd,
+    };
 }
 
 export default function MonthView({
@@ -46,6 +80,8 @@ export default function MonthView({
         onMonthChange(next);
     }, [month, onMonthChange]);
 
+    const { onTouchStart, onTouchMove, onTouchEnd } = useSwipe(handleNextMonth, handlePrevMonth);
+
     const monthStart = startOfMonth(month);
     const monthEnd = endOfMonth(month);
     const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -60,31 +96,17 @@ export default function MonthView({
     const dayNames = ["月", "火", "水", "木", "金", "土", "日"];
 
     return (
-        <div className="w-full">
+        <div
+            className="w-full"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+        >
             {/* Month Header */}
-            <div className="flex items-center justify-between px-4 py-3">
-                <div>
-                    <h2 className="text-lg font-bold text-foreground">
-                        {format(month, "yyyy年M月", { locale: ja })}
-                        <span className="ml-1 text-xs text-muted-foreground">▼</span>
-                    </h2>
-                </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={handlePrevMonth}
-                        className="rounded-full p-1.5 transition-colors hover:bg-muted active:bg-border"
-                        aria-label="前の月"
-                    >
-                        <ChevronLeft size={20} className="text-muted-foreground" />
-                    </button>
-                    <button
-                        onClick={handleNextMonth}
-                        className="rounded-full p-1.5 transition-colors hover:bg-muted active:bg-border"
-                        aria-label="次の月"
-                    >
-                        <ChevronRight size={20} className="text-muted-foreground" />
-                    </button>
-                </div>
+            <div className="flex items-center justify-center px-4 py-3 relative">
+                <h2 className="text-lg font-bold text-foreground">
+                    {format(month, "yyyy年M月", { locale: ja })}
+                </h2>
             </div>
 
             {/* Weekday Headers */}
