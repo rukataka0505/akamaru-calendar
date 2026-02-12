@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Send, ChevronDown, ChevronUp } from "lucide-react";
 import { MediaComment } from "@/lib/types";
-import { getCommentsForMedia, addComment } from "@/lib/mockDriveService";
+import { getCommentsForMedia, addComment } from "@/lib/driveService";
+import { useUser } from "@/components/ui/UserSwitcher";
 
 interface CommentSectionProps {
     mediaId: string;
@@ -14,6 +15,7 @@ export default function CommentSection({ mediaId }: CommentSectionProps) {
     const [newComment, setNewComment] = useState("");
     const [isExpanded, setIsExpanded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const { currentUserId } = useUser();
 
     useEffect(() => {
         const load = async () => {
@@ -27,7 +29,7 @@ export default function CommentSection({ mediaId }: CommentSectionProps) {
 
     const handleSubmit = async () => {
         if (!newComment.trim()) return;
-        const comment = await addComment(mediaId, newComment.trim());
+        const comment = await addComment(mediaId, newComment.trim(), currentUserId);
         setComments((prev) => [...prev, comment]);
         setNewComment("");
     };

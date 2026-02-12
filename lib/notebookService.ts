@@ -1,59 +1,99 @@
+"use server";
 
+import { createAdminClient } from "./supabase";
 import { MemoItem, UploadedBy } from "./types";
-import { v4 as uuidv4 } from "uuid";
+import { revalidatePath } from "next/cache";
 
-// Mock Data
-let MOCK_MEMOS: MemoItem[] = [
-    {
-        id: "memo-1",
-        title: "行きたい場所リスト",
-        content: "- 京都のカフェ\n- ディズニーランド\n- 温泉旅行",
-        color: "#FFBCBC",
-        updatedAt: new Date(),
-        createdAt: new Date(),
-        lastEditedBy: "user-1",
-    },
-    {
-        id: "memo-2",
-        title: "買い物リスト",
-        content: "- 洗剤\n- 牛乳\n- 卵",
-        color: "#B4E4FF",
-        updatedAt: new Date(Date.now() - 86400000), // 1 day ago
-        createdAt: new Date(Date.now() - 86400000),
-        lastEditedBy: "user-2",
-    }
-];
+// Type needed for Supabase return type casting if strictly needed,
+// but for now we will map manually.
+
+function mapMemo(row: any): MemoItem {
+    return {
+        id: row.id,
+        title: row.title,
+        content: row.content || "",
+        color: row.color,
+        lastEditedBy: row.last_edited_by as UploadedBy,
+        updatedAt: new Date(row.updated_at),
+        createdAt: new Date(row.created_at),
+    };
+}
 
 export async function getMemos(): Promise<MemoItem[]> {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return [...MOCK_MEMOS].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    const supabase = createAdminClient();
+
+    const { data, error } = await supabase
+        .from("memos")
+        .select("*")
+        .order("updated_at", { ascending: false });
+
+    if (error) {
+        console.error("Error fetching memos:", error);
+        return [];
+    }
+
+    return data.map(mapMemo);
 }
 
 export async function createMemo(title: string, color: string, userId: UploadedBy): Promise<MemoItem> {
-    const newMemo: MemoItem = {
-        id: uuidv4(),
-        title: title || "新しいノート",
-        content: "",
-        color: color,
-        updatedAt: new Date(),
-        createdAt: new Date(),
-        lastEditedBy: userId,
-    };
-    MOCK_MEMOS = [newMemo, ...MOCK_MEMOS];
-    return newMemo;
+    const supabase = createAdminClient();
+
+    const { data, error } = await supabase
+        .from("memos")
+        .insert({
+            title: title || "新しいノート",
+            content: "",
+            color: color,
+            last_edited_by: userId,
+            updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+    if (error) {
+        throw new Error(`Failed to create memo: ${error.message}`);
+    }
+
+    revalidatePath("/"); // Revalidate the page to show new memo
+    return mapMemo(data);
 }
 
 export async function updateMemo(memo: MemoItem): Promise<MemoItem> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const index = MOCK_MEMOS.findIndex((m) => m.id === memo.id);
-    if (index !== -1) {
-        MOCK_MEMOS[index] = { ...memo, updatedAt: new Date() };
-        return MOCK_MEMOS[index];
+    const supabase = createAdminClient();
+
+    const { data, error } = await supabase
+        .from("memos")
+        .update({
+            title: memo.title,
+            content: memo.content,
+            color: memo.color,
+            last_edited_by: memo.lastEditedBy,
+            updated_at: new Date().toISOString(),
+        })
+        .eq("id", memo.id)
+        .select()
+        .single();
+
+    if (error) {
+        throw new Error(`Failed to update memo: ${error.message}`);
     }
-    throw new Error("Memo not found");
+
+    revalidatePath("/");
+    return mapMemo(data);
 }
 
 export async function deleteMemo(id: string): Promise<void> {
-    MOCK_MEMOS = MOCK_MEMOS.filter(m => m.id !== id);
+    const supabase = createAdminClient();
+
+    const { error } = await supabase
+        .from("memos")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        console.error("Failed to delete memo:", error);
+        throw new Error(`Failed to delete memo: ${error.message}`);
+    }
+
+    revalidatePath("/");
 }

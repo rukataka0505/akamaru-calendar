@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { DriveMedia } from "@/lib/types";
-import { getMediaByDate } from "@/lib/mockDriveService";
+import { getMediaByDate } from "@/lib/driveService";
 import MediaItem from "./MediaItem";
 
 interface MediaFeedProps {

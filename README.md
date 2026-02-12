@@ -10,7 +10,8 @@ Google Drive 2TBをフル活用した「思い出が消えないデジタルな�
 
 ## 技術スタック
 - **Frontend**: Next.js (App Router), Tailwind CSS, shadcn/ui (Planned)
-- **Backend/DB**: Supabase (Auth, Database, Realtime)
+- **Backend/DB**: Supabase (Database) + Server Actions (Service Role)
+- **Auth**: 簡易PIN認証 + Cookie
 - **Storage**: Google Drive API (Photos/Videos)
 - **Calendar**: Google Calendar API (Events)
 
@@ -58,8 +59,90 @@ app/
     - *理由*: 低遅延での双方向通信（「今見てるよ」機能など）。
 
 4.  **認証 (Auth)**
-    - Supabase Auth (Google Login)
-    - *連携*: SupabaseのユーザーIDとGoogleのアクセストークンを紐付ける。
+    - 簡易PIN認証（`APP_PIN` 環境変数）
+    - 初回アクセス時にPIN入力 → Cookieにトークン保存（1年間有効）
+    - ユーザー識別はUI上のトグルで「あかり/るか」を切り替え（`UserSwitcher`）
+
+5.  **Google Drive 連携**
+    - アップロード: Client -> API Route (`/api/drive/upload`) -> Google Drive API
+    - 閲覧: Client -> API Route (`/api/drive/file/[id]`) -> Google Drive (Proxy)
+    - メタデータ: Supabase `media_metadata` テーブルで管理
+
+## セットアップ手順
+
+### 1. 環境変数 (.env.local)
+
+```env
+# PIN Authentication
+APP_PIN=0505
+NEXT_PUBLIC_DEFAULT_USER=user-1
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...  # for Server Actions
+
+# Google Drive API
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REFRESH_TOKEN=...
+GOOGLE_DRIVE_FOLDER_ID=...
+```
+
+### 2. Supabase テーブル作成
+
+以下のSQLを実行してテーブルを作成してください。
+
+#### `events` (カレンダー)
+```sql
+CREATE TABLE events (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  start_time TIMESTAMPTZ NOT NULL,
+  end_time TIMESTAMPTZ NOT NULL,
+  all_day BOOLEAN DEFAULT FALSE,
+  color TEXT DEFAULT '#10b981',
+  calendar_id TEXT DEFAULT 'cal-1',
+  calendar_name TEXT DEFAULT '恋人',
+  memo TEXT,
+  location TEXT,
+  url TEXT,
+  repeat_dates JSONB,
+  notifications JSONB,
+  recurrence JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+#### `memos` (共有ノート)
+```sql
+CREATE TABLE memos (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL DEFAULT '新しいノート',
+  content TEXT DEFAULT '',
+  color TEXT DEFAULT '#FFBCBC',
+  last_edited_by TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+#### `media_metadata` (アルバム)
+```sql
+CREATE TABLE media_metadata (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  drive_file_id TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  mime_type TEXT NOT NULL,
+  uploaded_by TEXT NOT NULL,
+  created_time TIMESTAMPTZ NOT NULL,
+  modified_time TIMESTAMPTZ DEFAULT NOW(),
+  size BIGINT,
+  width INT,
+  height INT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
 
 ## 開発ルール
 - **意図優先**: コードを書く前に「何のために」を明確にする。

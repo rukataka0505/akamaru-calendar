@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Heart, ImageIcon, Plus } from "lucide-react";
 import { DriveMedia, AlbumGroup, UploadedBy } from "@/lib/types";
-import { getMediaByMonth, groupMediaByDate, addPhotosToAlbum } from "@/lib/mockDriveService";
+import { getMediaByMonth } from "@/lib/driveService";
+import { groupMediaByDate, addPhotosToAlbum } from "@/lib/driveClient";
 import DateCard from "./DateCard";
 import FavoritesView from "./FavoritesView";
 

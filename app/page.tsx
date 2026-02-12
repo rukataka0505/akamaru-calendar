@@ -18,7 +18,8 @@ import {
   createEvent,
   updateEvent,
   MOCK_CALENDARS,
-} from "@/lib/mockCalendarService";
+} from "@/lib/calendarService";
+import { useUser } from "@/components/ui/UserSwitcher";
 import { CalendarEvent, CalendarInfo, UploadedBy } from "@/lib/types";
 
 type ViewType = "month" | "week" | "day" | "album" | "notebook";
@@ -31,7 +32,8 @@ export default function HomePage() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [calendars] = useState<CalendarInfo[]>(MOCK_CALENDARS);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
-  const [currentUserId] = useState<UploadedBy>("user-1");
+
+  const { currentUserId } = useUser();
 
   // Album state
   const [favorites, setFavorites] = useState<Set<string>>(new Set());

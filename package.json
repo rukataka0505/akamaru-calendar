@@ -10,10 +10,12 @@
     "backup": "git add -A && git commit -m \"backup: %DATE% %TIME%\" && git push origin master"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.95.3",
     "@types/uuid": "^10.0.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.34.0",
+    "googleapis": "^171.4.0",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "react": "19.2.3",

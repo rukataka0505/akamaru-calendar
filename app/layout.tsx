@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { UserProvider } from "@/components/ui/UserSwitcher";
+import PinProtection from "@/components/auth/PinProtection";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -49,7 +51,11 @@ export default function RootLayout({
         />
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
-      <body className="antialiased overscroll-none">{children}</body>
+      <body className="antialiased overscroll-none">
+        <UserProvider>
+          <PinProtection>{children}</PinProtection>
+        </UserProvider>
+      </body>
     </html>
   );
 }

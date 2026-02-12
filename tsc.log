@@ -1,0 +1,11 @@
+app/api/drive/upload/route.ts(59,44): error TS2769: No overload matches this call.
+  Overload 1 of 6, '(params?: Params$Resource$Files$Create | undefined, options?: MethodOptions | undefined): Promise<GaxiosResponseWithHTTP2<Schema$File>>', gave the following error.
+    Object literal may only specify known properties, but 'mileType' does not exist in type 'Schema$File'. Did you mean to write 'mimeType'?
+  Overload 2 of 6, '(callback: BodyResponseCallback<Schema$File>): void', gave the following error.
+    Object literal may only specify known properties, and 'requestBody' does not exist in type 'BodyResponseCallback<Schema$File>'.
+app/api/drive/upload/route.ts(72,35): error TS2339: Property 'data' does not exist on type 'Promise<GaxiosResponseWithHTTP2<Readable>> & Promise<GaxiosResponseWithHTTP2<Schema$File>> & void'.
+app/page.tsx(34,10): error TS2451: Cannot redeclare block-scoped variable 'editingEvent'.
+app/page.tsx(34,24): error TS2451: Cannot redeclare block-scoped variable 'setEditingEvent'.
+app/page.tsx(35,10): error TS2451: Cannot redeclare block-scoped variable 'editingEvent'.
+app/page.tsx(35,24): error TS2451: Cannot redeclare block-scoped variable 'setEditingEvent'.
+components/album/CommentSection.tsx(30,31): error TS2554: Expected 3 arguments, but got 2.
