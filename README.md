@@ -64,3 +64,43 @@ app/
 ## 開発ルール
 - **意図優先**: コードを書く前に「何のために」を明確にする。
 - **UI/UX**: ユーザーの操作感（心地よさ）を最優先。
+
+## アルバム機能 (Phase 2)
+
+### コンポーネント構成
+```
+components/album/
+├── AlbumTimeline.tsx   # 日付ごとのタイムライン一覧
+├── DateCard.tsx        # 日付カード（代表写真 + 日付オーバーレイ）
+├── MediaFeed.tsx       # フルスクリーン詳細フィード
+├── MediaItem.tsx       # 個別メディア表示 + Lazy Load
+├── HeartButton.tsx     # お気に入りトグル（ON/OFF）
+├── FavoritesView.tsx   # お気に入り一覧表示（グリッド）
+└── CommentSection.tsx  # コメント一覧 + 入力
+components/ui/
+└── BottomNav.tsx       # カレンダー / アルバム タブ切替
+```
+
+### アルバムデータフロー
+
+```
+[アルバム一覧]
+  Client → API Route (/api/drive/list) → Google Drive API
+  ※ thumbnailLink でサムネイル取得 → 高速一覧表示
+
+[フルスクリーンフィード]
+  Client → API Route (/api/drive/file) → Google Drive API
+  ※ webContentLink でオリジナル画像取得
+
+[お気に入り（ハート）]
+  Client ←→ Supabase (reactions テーブル)
+  ※ トグル式（ON/OFF、1ユーザー1メディアにつき1回）
+  ※ お気に入り一覧画面でフィルタリング表示
+
+[コメント]
+  Client ←→ Supabase Realtime (comments テーブル)
+  ※ リアルタイム更新
+
+[オリジナルダウンロード]
+  Client → Google Drive webContentLink へ直接リダイレクト
+```

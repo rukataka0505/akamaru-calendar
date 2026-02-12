@@ -47,3 +47,42 @@ export const EVENT_COLOR_LABELS: Record<EventColor, string> = {
   orange: "オレンジ",
   slate: "スレート",
 };
+
+// ===== Album Types =====
+
+export interface DriveMedia {
+  id: string;
+  name: string;
+  mimeType: string;
+  thumbnailLink: string;
+  webContentLink: string;
+  webViewLink: string;
+  createdTime: string; // ISO 8601
+  modifiedTime: string;
+  size?: string;
+  imageMediaMetadata?: {
+    width: number;
+    height: number;
+  };
+}
+
+export interface MediaComment {
+  id: string;
+  mediaId: string;
+  userId: string;
+  userName: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface MediaReaction {
+  mediaId: string;
+  isFavorite: boolean;
+}
+
+export interface AlbumGroup {
+  date: string; // "yyyy-MM-dd"
+  displayDate: string; // "2026年2月12日"
+  media: DriveMedia[];
+  coverImage: DriveMedia;
+}
