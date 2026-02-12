@@ -31,7 +31,7 @@ const variants = {
 };
 
 const transition = {
-    x: { type: "tween", duration: 0.25, ease: "easeInOut" },
+    x: { type: "tween" as const, duration: 0.25, ease: "easeInOut" as const },
     opacity: { duration: 0.2 },
 };
 
