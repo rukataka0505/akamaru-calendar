@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from "react";
-import { isSameDay } from "date-fns";
-import { Plus } from "lucide-react";
+import { isSameDay, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from "date-fns";
 import MonthView from "@/components/calendar/MonthView";
+import WeekView from "@/components/calendar/WeekView";
+import DayView from "@/components/calendar/DayView";
+import CalendarHeader from "@/components/calendar/CalendarHeader";
 import DayDetailDrawer from "@/components/calendar/DayDetailDrawer";
 import BottomSheet from "@/components/features/BottomSheet";
 
@@ -18,11 +20,11 @@ import {
 } from "@/lib/mockCalendarService";
 import { CalendarEvent, CalendarInfo, UploadedBy } from "@/lib/types";
 
-type AppTab = "calendar" | "album";
+type ViewType = "month" | "week" | "day" | "album";
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<AppTab>("calendar");
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [view, setView] = useState<ViewType>("month");
+  const [currentDate, setCurrentDate] = useState(new Date()); // Tracks the currently viewed date/period
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -36,19 +38,53 @@ export default function HomePage() {
 
   useEffect(() => {
     const fetchEvents = async () => {
+      // Create a range based on view? 
+      // For simplicity, fetch current month + prev/next month buffer if needed?
+      // Or just fetch for currentDate's month.
+      // Week view might span months.
+      // Ideally fetch range. But getEventsForMonth takes year/month.
+      // Let's fetch for the month of currentDate. 
+      // If week crosses month, maybe fetch both? 
+      // For now, simplify -> fetch current month.
       const data = await getEventsForMonth(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth()
+        currentDate.getFullYear(),
+        currentDate.getMonth()
       );
       setEvents(data);
     };
     fetchEvents();
-  }, [currentMonth]);
+  }, [currentDate]);
 
-  // Calendar handlers
+  // Calendar Navigation
+  const handlePrev = useCallback(() => {
+    setCurrentDate((prev) => {
+      if (view === "month") return subMonths(prev, 1);
+      if (view === "week") return subWeeks(prev, 1);
+      if (view === "day") return subDays(prev, 1);
+      return prev;
+    });
+  }, [view]);
+
+  const handleNext = useCallback(() => {
+    setCurrentDate((prev) => {
+      if (view === "month") return addMonths(prev, 1);
+      if (view === "week") return addWeeks(prev, 1);
+      if (view === "day") return addDays(prev, 1);
+      return prev;
+    });
+  }, [view]);
+
+  const handleToday = useCallback(() => {
+    const now = new Date();
+    setCurrentDate(now);
+    setSelectedDate(null); // Optional: select today?
+  }, []);
+
+  // Calendar Selection Handlers
   const handleDateSelect = useCallback(
     (date: Date) => {
       if (selectedDate && isSameDay(date, selectedDate)) {
+        // In Month view, double tap (or second tap) opens sheet
         setIsSheetOpen(true);
       } else {
         setSelectedDate(date);
@@ -57,10 +93,15 @@ export default function HomePage() {
     [selectedDate]
   );
 
-  const handleMonthChange = useCallback((date: Date) => {
-    setCurrentMonth(date);
-    setSelectedDate(null);
-  }, []);
+  const handleTimeSelect = useCallback((date: Date) => {
+    if (selectedDate && date.getTime() === selectedDate.getTime()) {
+      // Same time slot clicked again -> Open sheet
+      setIsSheetOpen(true);
+    } else {
+      setSelectedDate(date);
+    }
+  }, [selectedDate]);
+
 
   const handleSaveEvent = useCallback(
     async (eventData: Omit<CalendarEvent, "id">) => {
@@ -83,8 +124,6 @@ export default function HomePage() {
     },
     []
   );
-
-
 
   const handleOpenSheet = useCallback(() => {
     setEditingEvent(null);
@@ -117,64 +156,101 @@ export default function HomePage() {
 
   return (
     <div className="relative flex flex-col min-h-[100dvh] bg-white max-w-md mx-auto">
-      {/* Calendar Tab */}
-      {activeTab === "calendar" && (
+      {/* View Content */}
+      <div className="flex flex-col h-[calc(100dvh-5rem)] overflow-hidden relative bg-white">
 
-        <div className="flex flex-col h-[calc(100dvh-5rem)] overflow-hidden relative bg-white">
-          <div
-            className="flex-1 overflow-y-auto w-full no-scrollbar bg-white"
-            onClick={() => {
-              if (isSheetOpen) setIsSheetOpen(false);
-            }}
-          >
-            <MonthView
-              month={currentMonth}
-              selectedDate={selectedDate}
-              events={events}
-              onDateSelect={handleDateSelect}
-              onMonthChange={handleMonthChange}
-            />
-            {/* Spacer to allow scrolling past the drawer */}
-            <div className={`w-full transition-all duration-300 ${selectedDate ? "h-[45vh]" : "h-0"}`} />
-          </div>
+        {/* Calendar Header (Only for calendar views) */}
+        {view !== "album" && (
+          <CalendarHeader
+            currentDate={currentDate}
+            onPrev={handlePrev}
+            onNext={handleNext}
+            onToday={handleToday}
+          />
+        )}
 
-          {/* Day Detail Panel */}
-          {selectedDate && !isSheetOpen && (
-            <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
-              <DayDetailDrawer
+        <div
+          className="flex-1 overflow-y-auto w-full no-scrollbar bg-white"
+          onClick={() => {
+            // Close sheet if clicking backdrop? 
+            // Actually no, sheet is a drawer.
+            // Maybe clear edit state?
+          }}
+        >
+
+          {view === "month" && (
+            <>
+              <MonthView
+                month={currentDate}
                 selectedDate={selectedDate}
-                events={events}
-                onAddEvent={handleOpenSheet}
-                onEditEvent={handleEditEvent}
-                onClose={() => setSelectedDate(null)}
+                events={events} // Note: filtering happens in component usually, or here? MonthView filters date-fns
+                onDateSelect={handleDateSelect}
+                onMonthChange={setCurrentDate}
               />
-            </div>
+              {/* Spacer to allow scrolling past the drawer IN MONTH VIEW */}
+              <div className={`w-full transition-all duration-300 ${selectedDate ? "h-[45vh]" : "h-0"}`} />
+            </>
           )}
 
-          <BottomSheet
-            isOpen={isSheetOpen}
-            onClose={() => { setIsSheetOpen(false); setEditingEvent(null); }}
-            selectedDate={selectedDate}
-            calendars={calendars}
-            onSaveEvent={handleSaveEvent}
-            editingEvent={editingEvent}
-            onUpdateEvent={handleUpdateEvent}
-          />
+          {view === "week" && (
+            <WeekView
+              currentDate={currentDate}
+              selectedDate={selectedDate}
+              events={events}
+              onTimeSelect={handleTimeSelect}
+              onEventClick={handleEditEvent}
+              onPrev={handlePrev}
+              onNext={handleNext}
+            />
+          )}
+
+          {view === "day" && (
+            <DayView
+              currentDate={currentDate}
+              selectedDate={selectedDate}
+              events={events}
+              onTimeSelect={handleTimeSelect}
+              onEventClick={handleEditEvent}
+              onPrev={handlePrev}
+              onNext={handleNext}
+            />
+          )}
+
+          {view === "album" && (
+            <AlbumTimeline
+              favorites={favorites}
+              onOpenFeed={handleOpenFeed}
+              currentUserId={currentUserId}
+            />
+          )}
+
         </div>
-      )}
 
-      {/* Album Tab */}
-      {activeTab === "album" && (
-        <>
-          <AlbumTimeline
-            favorites={favorites}
-            onOpenFeed={handleOpenFeed}
-            currentUserId={currentUserId}
-          />
-        </>
-      )}
+        {/* Day Detail Panel (Only for Month View) */}
+        {view === "month" && selectedDate && !isSheetOpen && (
+          <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
+            <DayDetailDrawer
+              selectedDate={selectedDate}
+              events={events}
+              onAddEvent={handleOpenSheet}
+              onEditEvent={handleEditEvent}
+              onClose={() => setSelectedDate(null)}
+            />
+          </div>
+        )}
 
-      {/* Media Feed Overlay */}
+        <BottomSheet
+          isOpen={isSheetOpen}
+          onClose={() => { setIsSheetOpen(false); setEditingEvent(null); }}
+          selectedDate={selectedDate}
+          calendars={calendars}
+          onSaveEvent={handleSaveEvent}
+          editingEvent={editingEvent}
+          onUpdateEvent={handleUpdateEvent}
+        />
+      </div>
+
+      {/* Media Feed Overlay (Album) */}
       {feedDateKey && (
         <MediaFeed
           dateKey={feedDateKey}
@@ -186,8 +262,18 @@ export default function HomePage() {
 
       {/* Bottom Navigation */}
       <BottomNav
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
+        activeTab={view} // view matches TabType
+        onTabChange={(tab: any) => {
+          if (tab === "today") {
+            handleToday();
+            return;
+          }
+          if (tab === "month" || tab === "week" || tab === "day" || tab === "album") {
+            setView(tab);
+          }
+          // If we switch to calendar views, maybe reset currentDate to today or keep it?
+          // Keep it is betterUX.
+        }}
         onAddClick={handleOpenSheet}
       />
     </div>

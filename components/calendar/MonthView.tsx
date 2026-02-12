@@ -106,12 +106,7 @@ export default function MonthView({
 
     return (
         <div className="w-full h-full flex flex-col bg-white overflow-hidden">
-            {/* Month Header */}
-            <div className="flex items-center justify-center px-4 py-3 relative shrink-0">
-                <h2 className="text-lg font-bold text-foreground">
-                    {format(month, "yyyy年M月", { locale: ja })}
-                </h2>
-            </div>
+            {/* Month Header Removed - Controlled by Parent */}
 
             {/* Weekday Headers */}
             <div className="grid grid-cols-7 border-b border-border shrink-0">

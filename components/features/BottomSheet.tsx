@@ -107,6 +107,17 @@ export default function BottomSheet({
             if (selectedDate) {
                 setStartDate(selectedDate);
                 setEndDate(selectedDate);
+
+                // Initialize time from selectedDate
+                const h = selectedDate.getHours();
+                const m = selectedDate.getMinutes();
+                const startStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                setStartTime(startStr);
+
+                // Default end time is +1 hour
+                const endH = (h + 1) % 24;
+                const endStr = `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                setEndTime(endStr);
             }
             if (calendars.length > 0) {
                 setSelectedCalendar(calendars.find((c) => c.isDefault) || calendars[0]);
