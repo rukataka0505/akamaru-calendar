@@ -1,65 +1,113 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState, useCallback, useEffect } from "react";
+import { isSameDay } from "date-fns";
+import { Plus } from "lucide-react";
+import MonthView from "@/components/calendar/MonthView";
+import DayDetail from "@/components/calendar/DayDetail";
+import BottomSheet from "@/components/features/BottomSheet";
+import { RecordData } from "@/components/features/RecordForm";
+import {
+  getEventsForMonth,
+  createEvent,
+  MOCK_CALENDARS,
+} from "@/lib/mockCalendarService";
+import { CalendarEvent, CalendarInfo } from "@/lib/types";
+
+export default function HomePage() {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [calendars] = useState<CalendarInfo[]>(MOCK_CALENDARS);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      const data = await getEventsForMonth(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth()
+      );
+      setEvents(data);
+    };
+    fetchEvents();
+  }, [currentMonth]);
+
+  // Tap to select, tap again to open sheet
+  const handleDateSelect = useCallback(
+    (date: Date) => {
+      if (selectedDate && isSameDay(date, selectedDate)) {
+        setIsSheetOpen(true);
+      } else {
+        setSelectedDate(date);
+      }
+    },
+    [selectedDate]
+  );
+
+  const handleMonthChange = useCallback((date: Date) => {
+    setCurrentMonth(date);
+    setSelectedDate(null);
+  }, []);
+
+  const handleSaveEvent = useCallback(
+    async (eventData: Omit<CalendarEvent, "id">) => {
+      const newEvent = await createEvent(eventData);
+      setEvents((prev) => [...prev, newEvent]);
+    },
+    []
+  );
+
+  const handleSaveRecord = useCallback((record: RecordData) => {
+    // TODO: Upload to Google Drive via API route
+    console.log("Record saved (mock):", record);
+    alert(`記録を保存しました: ${record.photos.length}枚の写真`);
+  }, []);
+
+  const handleOpenSheet = useCallback(() => {
+    if (!selectedDate) {
+      setSelectedDate(new Date());
+    }
+    setIsSheetOpen(true);
+  }, [selectedDate]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="relative flex flex-col min-h-[100dvh] bg-white max-w-md mx-auto">
+      {/* Calendar */}
+      <MonthView
+        month={currentMonth}
+        selectedDate={selectedDate}
+        events={events}
+        onDateSelect={handleDateSelect}
+        onMonthChange={handleMonthChange}
+      />
+
+      {/* Day Detail */}
+      {selectedDate && (
+        <DayDetail
+          date={selectedDate}
+          events={events}
+          onAddEvent={handleOpenSheet}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      )}
+
+      {/* FAB */}
+      <button
+        onClick={handleOpenSheet}
+        className="fixed bottom-6 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-foreground text-white shadow-lg transition-all active:scale-95 hover:shadow-xl"
+        aria-label="追加"
+      >
+        <Plus size={28} strokeWidth={2} />
+      </button>
+
+      {/* Bottom Sheet */}
+      <BottomSheet
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        selectedDate={selectedDate}
+        calendars={calendars}
+        onSaveEvent={handleSaveEvent}
+        onSaveRecord={handleSaveRecord}
+      />
     </div>
   );
 }

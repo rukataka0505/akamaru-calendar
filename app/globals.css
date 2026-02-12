@@ -2,25 +2,140 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1a1a1a;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --border: #e5e5e5;
+  --accent: #4a9e7e;
+  --accent-light: #e8f5ef;
+  --destructive: #ef4444;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-destructive: var(--destructive);
+  --font-sans: "Inter", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* === Global Reset === */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+html {
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+  user-select: none;
+  touch-action: pan-y;
+}
+
+/* === Calendar Custom Styles === */
+.rdp {
+  --rdp-accent-color: var(--accent) !important;
+  --rdp-accent-background-color: var(--accent-light) !important;
+  margin: 0 !important;
+  width: 100%;
+}
+
+.rdp-month {
+  width: 100% !important;
+}
+
+.rdp-table {
+  width: 100% !important;
+  max-width: 100% !important;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.rdp-head_cell {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  padding: 0.5rem 0;
+  text-transform: uppercase;
+}
+
+.rdp-cell {
+  padding: 0;
+}
+
+.rdp-day {
+  width: 100%;
+  aspect-ratio: 1 / 1.3;
+  font-size: 0.8rem;
+  border-radius: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 4px;
+  gap: 2px;
+}
+
+.rdp-day_today .day-number {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.rdp-day_selected {
+  background-color: var(--muted) !important;
+}
+
+.rdp-day_selected .day-number {
+  background-color: var(--accent);
+  color: white;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* === Vaul Bottom Sheet === */
+[vaul-drawer] {
+  touch-action: none;
+}
+
+[vaul-drawer-overlay] {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* === Event Bars === */
+.event-bar {
+  font-size: 0.6rem;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* === Smooth transitions === */
+.transition-spring {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* === Scrollbar === */
+::-webkit-scrollbar {
+  display: none;
 }

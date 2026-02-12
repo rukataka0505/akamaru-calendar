@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Couple's Digital Home PWA (Akaruka Calendar)
 
-## Getting Started
+## 概要
+Google Drive 2TBをフル活用した「思い出が消えないデジタルな家」。TimeTreeのようなカレンダーUIをベースに、写真共有（Google Drive）と予定共有（Google Calendar）を一元管理するPWA。
 
-First, run the development server:
+## コンセプト
+- **Dense & Clean**: 密度が高く、かつ整理されたUI（TimeTreeライク）
+- **Native Feel**: アプリのような操作感（スワイプ、タップ、振動）
+- **Memory Home**: 予定だけでなく、その日の「記録（写真・日記）」を残す場所
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 技術スタック
+- **Frontend**: Next.js (App Router), Tailwind CSS, shadcn/ui (Planned)
+- **Backend/DB**: Supabase (Auth, Database, Realtime)
+- **Storage**: Google Drive API (Photos/Videos)
+- **Calendar**: Google Calendar API (Events)
+
+## ディレクトリ構造 (Proposed)
+
+```
+app/
+├── app/
+│   ├── api/                 # Next.js API Routes (Google Proxy)
+│   ├── (auth)/              # Login/Signup pages
+│   ├── (main)/              # Main App Layout
+│   │   └── page.tsx         # Calendar View
+│   └── layout.tsx           # PWA Root Layout
+├── components/
+│   ├── calendar/            # Calendar specific components
+│   │   ├── MonthView.tsx
+│   │   └── DayDetail.tsx
+│   ├── features/            # Feature specific components
+│   │   ├── EventForm.tsx    # Google Calendar Input
+│   │   ├── RecordForm.tsx   # Google Drive Photo Upload
+│   │   └── BottomSheet.tsx  # Vaul wrapper
+│   └── ui/                  # Shared UI components (Button, Input, etc.)
+├── lib/
+│   ├── google/              # Google API Clients
+│   │   ├── drive.ts
+│   │   └── calendar.ts
+│   ├── supabase/            # Supabase Client
+│   │   └── client.ts
+│   └── utils.ts             # Helpers
+└── types/                   # Type Definitions
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## データフロー
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1.  **予定 (Events)**
+    - Client -> API Route (`/api/calendar`) -> Google Calendar API
+    - *理由*: Google APIの認証（Server-side）を隠蔽するため。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2.  **記録 (Records/Photos)**
+    - Client -> API Route (`/api/drive/upload`) -> Google Drive API
+    - *理由*: 大容量ファイルのアップロードフロー制御と、Driveのフォルダ管理（`Akaruka/2026/02` など）をサーバー側で行うため。
 
-## Learn More
+3.  **リアルタイム (Hearts)**
+    - Client <-> Supabase Realtime
+    - *理由*: 低遅延での双方向通信（「今見てるよ」機能など）。
 
-To learn more about Next.js, take a look at the following resources:
+4.  **認証 (Auth)**
+    - Supabase Auth (Google Login)
+    - *連携*: SupabaseのユーザーIDとGoogleのアクセストークンを紐付ける。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 開発ルール
+- **意図優先**: コードを書く前に「何のために」を明確にする。
+- **UI/UX**: ユーザーの操作感（心地よさ）を最優先。
