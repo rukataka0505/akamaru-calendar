@@ -33,7 +33,7 @@ const variants = {
 };
 
 const transition = {
-    x: { type: "tween", duration: 0.25, ease: "easeOut" },
+    x: { type: "tween" as const, duration: 0.25, ease: "easeOut" as const },
     opacity: { duration: 0.15 },
 };
 
