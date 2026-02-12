@@ -47,18 +47,18 @@ export default function MediaFeed({
     }, []);
 
     return (
-        <div className="fixed inset-0 z-50 bg-neutral-950 flex flex-col animate-slideUp">
+        <div className="fixed inset-0 z-50 bg-[#FFF9F5] flex flex-col animate-slideUp">
             {/* Header */}
-            <div className="flex items-center gap-3 px-4 py-3 bg-neutral-950/90 backdrop-blur-md border-b border-white/5 safe-top">
+            <div className="flex items-center gap-3 px-4 py-3 bg-[#FFF9F5]/90 backdrop-blur-md border-b border-stone-200/50 safe-top">
                 <button
                     onClick={onClose}
-                    className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/10 active:bg-white/20 transition-colors"
+                    className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-black/5 active:bg-black/10 transition-colors"
                 >
-                    <ArrowLeft size={22} className="text-white" />
+                    <ArrowLeft size={22} className="text-stone-800" />
                 </button>
                 <div>
-                    <h2 className="text-white text-sm font-semibold">{displayDate}</h2>
-                    <p className="text-white/50 text-xs">
+                    <h2 className="text-stone-800 text-sm font-semibold">{displayDate}</h2>
+                    <p className="text-stone-500 text-xs">
                         {isLoading ? "読み込み中..." : `${media.length}枚`}
                     </p>
                 </div>
@@ -69,7 +69,7 @@ export default function MediaFeed({
                 {isLoading ? (
                     // Skeleton
                     Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="w-full aspect-[4/3] rounded-xl bg-neutral-800 animate-pulse" />
+                        <div key={i} className="w-full aspect-[4/3] rounded-xl bg-stone-200 animate-pulse" />
                     ))
                 ) : (
                     media.map((item) => (

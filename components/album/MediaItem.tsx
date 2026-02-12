@@ -47,11 +47,10 @@ export default function MediaItem({
     return (
         <div
             ref={imgRef}
-            className={`transition-all duration-500 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                }`}
+            className="transition-all duration-500 opacity-100 translate-y-0"
         >
             {/* Image */}
-            <div className="relative w-full aspect-[4/3] bg-neutral-900 rounded-xl overflow-hidden">
+            <div className="relative w-full aspect-[4/3] bg-stone-100 rounded-xl overflow-hidden shadow-sm">
                 {isVisible && (
                     <img
                         src={media.webContentLink}
@@ -65,7 +64,7 @@ export default function MediaItem({
 
                 {/* Skeleton while loading */}
                 {!isLoaded && (
-                    <div className="absolute inset-0 bg-neutral-800 animate-pulse" />
+                    <div className="absolute inset-0 bg-stone-200 animate-pulse" />
                 )}
             </div>
 
@@ -81,7 +80,7 @@ export default function MediaItem({
 
                 <button
                     onClick={handleDownload}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-white/70 text-xs hover:bg-white/20 hover:text-white transition-all active:scale-95"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-100 text-stone-600 text-xs hover:bg-stone-200 transition-all active:scale-95"
                 >
                     <Download size={14} />
                     <span>オリジナル</span>

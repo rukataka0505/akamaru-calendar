@@ -44,7 +44,7 @@ export default function CommentSection({ mediaId }: CommentSectionProps) {
             {/* Toggle Button */}
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white/80 transition-colors py-1"
+                className="flex items-center gap-1.5 text-xs text-stone-500 hover:text-stone-700 transition-colors py-1"
             >
                 <span>
                     コメント {!isLoading && comments.length > 0 && `(${comments.length})`}
@@ -59,14 +59,14 @@ export default function CommentSection({ mediaId }: CommentSectionProps) {
                         <div className="space-y-2 max-h-40 overflow-y-auto">
                             {comments.map((comment) => (
                                 <div key={comment.id} className="flex gap-2">
-                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-accent/30 flex items-center justify-center text-[0.6rem] font-bold text-white">
+                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center text-[0.6rem] font-bold text-orange-600">
                                         {comment.userName.charAt(0)}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <span className="text-xs font-semibold text-white/80">
+                                        <span className="text-xs font-semibold text-stone-700">
                                             {comment.userName}
                                         </span>
-                                        <p className="text-xs text-white/60 mt-0.5 break-words">
+                                        <p className="text-xs text-stone-600 mt-0.5 break-words">
                                             {comment.text}
                                         </p>
                                     </div>
@@ -74,7 +74,7 @@ export default function CommentSection({ mediaId }: CommentSectionProps) {
                             ))}
                         </div>
                     ) : (
-                        <p className="text-xs text-white/40 py-2">
+                        <p className="text-xs text-stone-400 py-2">
                             まだコメントはありません
                         </p>
                     )}
@@ -87,14 +87,14 @@ export default function CommentSection({ mediaId }: CommentSectionProps) {
                             onChange={(e) => setNewComment(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="コメントを入力..."
-                            className="flex-1 bg-white/10 rounded-full px-3 py-1.5 text-xs text-white placeholder:text-white/30 outline-none focus:bg-white/15 transition-colors"
+                            className="flex-1 bg-stone-100 rounded-full px-3 py-1.5 text-xs text-stone-800 placeholder:text-stone-400 outline-none focus:bg-stone-200 transition-colors"
                         />
                         <button
                             onClick={handleSubmit}
                             disabled={!newComment.trim()}
                             className={`flex items-center justify-center w-7 h-7 rounded-full transition-all ${newComment.trim()
-                                    ? "bg-accent text-white active:scale-90"
-                                    : "bg-white/10 text-white/30"
+                                ? "bg-orange-500 text-white active:scale-90"
+                                : "bg-stone-200 text-stone-400"
                                 }`}
                         >
                             <Send size={13} />

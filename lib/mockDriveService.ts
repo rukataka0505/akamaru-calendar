@@ -2,11 +2,12 @@
 
 import { format, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
-import { DriveMedia, AlbumGroup, MediaComment } from "./types";
+import { DriveMedia, AlbumGroup, MediaComment, UploadedBy } from "./types";
 
 // Picsum photos を使ってモックデータを生成
 function generateMockMedia(count: number, baseDate: Date): DriveMedia[] {
     const media: DriveMedia[] = [];
+    const uploaders: UploadedBy[] = ["user-1", "user-2"];
     for (let i = 0; i < count; i++) {
         const seed = baseDate.getTime() + i;
         const id = `media-${format(baseDate, "yyyyMMdd")}-${i}`;
@@ -20,6 +21,7 @@ function generateMockMedia(count: number, baseDate: Date): DriveMedia[] {
             createdTime: baseDate.toISOString(),
             modifiedTime: baseDate.toISOString(),
             size: String(Math.floor(Math.random() * 5000000) + 500000),
+            uploadedBy: uploaders[Math.floor(Math.random() * 2)],
             imageMediaMetadata: {
                 width: 1920,
                 height: 1440,
@@ -160,4 +162,53 @@ export async function addComment(
     if (!MOCK_COMMENTS[mediaId]) MOCK_COMMENTS[mediaId] = [];
     MOCK_COMMENTS[mediaId].push(comment);
     return comment;
+}
+
+// === Photo Upload (from file picker) ===
+
+export async function addPhotosToAlbum(
+    files: File[],
+    uploadedBy: UploadedBy
+): Promise<{ added: DriveMedia[]; dateKeys: string[] }> {
+    await new Promise((r) => setTimeout(r, 200));
+    ensureMockData();
+
+    const added: DriveMedia[] = [];
+    const dateKeysSet = new Set<string>();
+
+    files.forEach((file, i) => {
+        // File.lastModified はiOS写真ピッカーでは撮影日時を返す
+        const fileDate = new Date(file.lastModified);
+        const dateKey = format(fileDate, "yyyy-MM-dd");
+        dateKeysSet.add(dateKey);
+
+        const existingMedia = MOCK_MEDIA_CACHE.get(dateKey) || [];
+        const idx = existingMedia.length;
+        const seed = fileDate.getTime() + idx + i;
+
+        const preview = URL.createObjectURL(file);
+
+        const media: DriveMedia = {
+            id: `media-${format(fileDate, "yyyyMMdd")}-${idx}`,
+            name: file.name || `IMG_${format(fileDate, "yyyyMMdd")}_${String(idx).padStart(3, "0")}.jpg`,
+            mimeType: file.type || "image/jpeg",
+            thumbnailLink: preview,
+            webContentLink: preview,
+            webViewLink: preview,
+            createdTime: fileDate.toISOString(),
+            modifiedTime: new Date().toISOString(),
+            size: String(file.size),
+            uploadedBy,
+            imageMediaMetadata: {
+                width: 1920,
+                height: 1440,
+            },
+        };
+
+        existingMedia.push(media);
+        MOCK_MEDIA_CACHE.set(dateKey, existingMedia);
+        added.push(media);
+    });
+
+    return { added, dateKeys: Array.from(dateKeysSet) };
 }

@@ -15,7 +15,7 @@ import {
   createEvent,
   MOCK_CALENDARS,
 } from "@/lib/mockCalendarService";
-import { CalendarEvent, CalendarInfo } from "@/lib/types";
+import { CalendarEvent, CalendarInfo, UploadedBy } from "@/lib/types";
 
 type AppTab = "calendar" | "album";
 
@@ -26,6 +26,7 @@ export default function HomePage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [calendars] = useState<CalendarInfo[]>(MOCK_CALENDARS);
+  const [currentUserId] = useState<UploadedBy>("user-1");
 
   // Album state
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -146,6 +147,7 @@ export default function HomePage() {
         <AlbumTimeline
           favorites={favorites}
           onOpenFeed={handleOpenFeed}
+          currentUserId={currentUserId}
         />
       )}
 

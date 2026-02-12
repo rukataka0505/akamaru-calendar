@@ -50,6 +50,13 @@ export const EVENT_COLOR_LABELS: Record<EventColor, string> = {
 
 // ===== Album Types =====
 
+export type UploadedBy = "user-1" | "user-2";
+
+export const USER_PROFILES: Record<UploadedBy, { name: string; color: string }> = {
+  "user-1": { name: "あかり", color: "#f43f5e" },
+  "user-2": { name: "るか", color: "#0ea5e9" },
+};
+
 export interface DriveMedia {
   id: string;
   name: string;
@@ -60,6 +67,7 @@ export interface DriveMedia {
   createdTime: string; // ISO 8601
   modifiedTime: string;
   size?: string;
+  uploadedBy: UploadedBy;
   imageMediaMetadata?: {
     width: number;
     height: number;
