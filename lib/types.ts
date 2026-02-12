@@ -1,3 +1,13 @@
+export type RecurrenceFrequency = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+export type Weekday = 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat';
+
+export interface RecurrenceRule {
+  frequency: RecurrenceFrequency;
+  interval: number;          // 繰り返し間隔（例: 2なら「2週間ごと」）
+  endDate?: Date;            // 繰り返し期限
+  weekdays?: Weekday[];      // 週の繰り返し条件（毎週の場合）
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -10,8 +20,9 @@ export interface CalendarEvent {
   memo?: string;
   location?: string;
   url?: string;
-  repeatDates?: Date[]; // 繰り返し予定の日付リスト
+  repeatDates?: Date[]; // 複数日予定の日付リスト
   notifications?: string[]; // 通知設定（例: ["10分前", "1日前"]）
+  recurrence?: RecurrenceRule; // 繰り返しルール
 }
 
 export interface CalendarInfo {

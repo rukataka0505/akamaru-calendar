@@ -114,6 +114,21 @@ body {
   touch-action: none;
 }
 
+[vaul-drawer] .flex-1.overflow-y-auto {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* === No Scrollbar Utility === */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 [vaul-drawer-overlay] {
   background-color: rgba(0, 0, 0, 0.4) !important;
 }
