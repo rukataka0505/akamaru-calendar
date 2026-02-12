@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { CalendarDays, Image, Grid3X3, Columns, RectangleVertical, Undo, Plus } from "lucide-react";
+import { CalendarDays, Image, Grid3X3, Columns, RectangleVertical, Undo, NotebookPen } from "lucide-react";
 
-type TabType = "month" | "week" | "day" | "album";
+type TabType = "month" | "week" | "day" | "album" | "notebook";
 
 interface BottomNavProps {
     activeTab: TabType;
@@ -17,6 +17,7 @@ export default function BottomNav({ activeTab, onTabChange, onAddClick }: Bottom
         { id: "week", label: "週", icon: Columns },
         { id: "day", label: "日", icon: RectangleVertical },
         { id: "album", label: "アルバム", icon: Image },
+        { id: "notebook", label: "ノート", icon: NotebookPen },
     ];
 
     return (
@@ -60,17 +61,6 @@ export default function BottomNav({ activeTab, onTabChange, onAddClick }: Bottom
                             </button>
                         );
                     })}
-
-                    {/* Add Button */}
-                    <button
-                        onClick={onAddClick}
-                        className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 text-muted-foreground hover:text-foreground"
-                    >
-                        <div className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-muted-foreground/20">
-                            <Plus size={16} strokeWidth={3} />
-                        </div>
-                        <span className="text-[0.6rem] font-medium">作成</span>
-                    </button>
                 </div>
             </div>
         </nav>

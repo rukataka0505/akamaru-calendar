@@ -11,6 +11,7 @@ import BottomSheet from "@/components/features/BottomSheet";
 
 import AlbumTimeline from "@/components/album/AlbumTimeline";
 import MediaFeed from "@/components/album/MediaFeed";
+import NotebookDashboard from "@/components/notebook/NotebookDashboard";
 import BottomNav from "@/components/ui/BottomNav";
 import {
   getEventsForMonth,
@@ -20,7 +21,7 @@ import {
 } from "@/lib/mockCalendarService";
 import { CalendarEvent, CalendarInfo, UploadedBy } from "@/lib/types";
 
-type ViewType = "month" | "week" | "day" | "album";
+type ViewType = "month" | "week" | "day" | "album" | "notebook";
 
 export default function HomePage() {
   const [view, setView] = useState<ViewType>("month");
@@ -216,12 +217,17 @@ export default function HomePage() {
             />
           )}
 
+
           {view === "album" && (
             <AlbumTimeline
               favorites={favorites}
               onOpenFeed={handleOpenFeed}
               currentUserId={currentUserId}
             />
+          )}
+
+          {view === "notebook" && (
+            <NotebookDashboard currentUserId={currentUserId} />
           )}
 
         </div>
@@ -268,7 +274,7 @@ export default function HomePage() {
             handleToday();
             return;
           }
-          if (tab === "month" || tab === "week" || tab === "day" || tab === "album") {
+          if (tab === "month" || tab === "week" || tab === "day" || tab === "album" || tab === "notebook") {
             setView(tab);
           }
           // If we switch to calendar views, maybe reset currentDate to today or keep it?

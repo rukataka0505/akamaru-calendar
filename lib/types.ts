@@ -107,3 +107,13 @@ export interface AlbumGroup {
   media: DriveMedia[];
   coverImage: DriveMedia;
 }
+
+export interface MemoItem {
+  id: string;
+  title: string;
+  content: string; // Markdown or text
+  color: string; // Theme color (hex)
+  updatedAt: Date;
+  createdAt: Date;
+  lastEditedBy: UploadedBy;
+}
