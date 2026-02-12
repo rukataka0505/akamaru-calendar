@@ -6,7 +6,7 @@ Google Drive 2TBをフル活用した「思い出が消えないデジタルな�
 ## コンセプト
 - **Dense & Clean**: 密度が高く、かつ整理されたUI（TimeTreeライク）
 - **Native Feel**: アプリのような操作感（スワイプ、タップ、振動）
-- **Memory Home**: 予定だけでなく、その日の「記録（写真・日記）」を残す場所
+- **Memory Home**: 予定だけでなく、その日の「記録」を残す場所
 
 ## 技術スタック
 - **Frontend**: Next.js (App Router), Tailwind CSS, shadcn/ui (Planned)

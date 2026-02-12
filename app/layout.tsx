@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "あかるか日記",
+  title: "あかるか記録",
   description: "ふたりの思い出を彩る、共有カレンダー＆アルバムアプリ。",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "あかるか日記",
+    title: "あかるか記録",
   },
 };
 

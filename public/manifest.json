@@ -1,6 +1,6 @@
 {
-  "name": "あかるか日記",
-  "short_name": "あかるか日記",
+  "name": "あかるか記録",
+  "short_name": "あかるか記録",
   "description": "ふたりの思い出を彩る、共有カレンダー＆アルバムアプリ。",
   "start_url": "/",
   "display": "standalone",

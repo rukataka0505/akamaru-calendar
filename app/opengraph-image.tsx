@@ -4,7 +4,7 @@ import { ImageResponse } from "next/og";
 export const runtime = "edge";
 
 // Image metadata
-export const alt = "あかるか日記";
+export const alt = "あかるか記録";
 export const size = {
     width: 1200,
     height: 630,
@@ -65,7 +65,7 @@ export default function Image() {
                         />
                         <div style={{ fontSize: 60, marginTop: 20, color: "#333", fontWeight: "bold" }}>7</div>
                     </div>
-                    <div style={{ fontSize: 80, fontWeight: 800, color: "#BF5B5B" }}>あかるか日記</div>
+                    <div style={{ fontSize: 80, fontWeight: 800, color: "#BF5B5B" }}>あかるか記録</div>
                 </div>
                 <div style={{ fontSize: 32, color: "#888", fontWeight: 500 }}>
                     ふたりの思い出を彩る、共有カレンダー＆アルバム
