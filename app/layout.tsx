@@ -5,6 +5,15 @@ export const metadata: Metadata = {
   title: "あかるか記録",
   description: "ふたりの思い出を彩る、共有カレンダー＆アルバムアプリ。",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
