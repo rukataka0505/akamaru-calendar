@@ -4,42 +4,31 @@ import React, { useState, useEffect } from "react";
 import { Drawer } from "vaul";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import {
-    X,
-    Clock,
-    CalendarDays,
-    Palette,
-    MapPin,
-    Link2,
-    StickyNote,
-    CheckSquare,
-    Repeat,
-    Hash,
-    Bell,
-    Users,
-    Paperclip,
-    BookmarkPlus,
-    ChevronRight,
-    Camera,
-} from "lucide-react";
+import { ChevronRight, Clock, MapPin, Link2, FileText, CalendarDays } from "lucide-react";
 import {
     CalendarEvent,
-    CalendarInfo,
     EVENT_COLORS,
     EVENT_COLOR_LABELS,
     EventColor,
 } from "@/lib/types";
-import RecordForm, { RecordData } from "./RecordForm";
+import RepeatCalendarModal from "./RepeatCalendarModal";
 
-type SheetTab = "event" | "record";
+// hex → EventColor 名の逆引き
+function hexToColorName(hex: string): EventColor {
+    const entry = (Object.entries(EVENT_COLORS) as [EventColor, string][]).find(
+        ([, v]) => v === hex
+    );
+    return entry ? entry[0] : "emerald";
+}
 
 interface BottomSheetProps {
     isOpen: boolean;
     onClose: () => void;
     selectedDate: Date | null;
-    calendars: CalendarInfo[];
+    calendars: { id: string; name: string; isDefault?: boolean }[];
     onSaveEvent: (event: Omit<CalendarEvent, "id">) => void;
-    onSaveRecord: (record: RecordData) => void;
+    editingEvent?: CalendarEvent | null;
+    onUpdateEvent?: (event: CalendarEvent) => void;
 }
 
 export default function BottomSheet({
@@ -48,39 +37,66 @@ export default function BottomSheet({
     selectedDate,
     calendars,
     onSaveEvent,
-    onSaveRecord,
+    editingEvent,
+    onUpdateEvent,
 }: BottomSheetProps) {
-    const [activeTab, setActiveTab] = useState<SheetTab>("event");
     const [title, setTitle] = useState("");
     const [allDay, setAllDay] = useState(false);
     const [startDate, setStartDate] = useState<Date>(new Date());
     const [endDate, setEndDate] = useState<Date>(new Date());
-    const [startTime, setStartTime] = useState("14:00");
-    const [endTime, setEndTime] = useState("15:00");
-    const [selectedCalendar, setSelectedCalendar] = useState<CalendarInfo | null>(null);
+    const [startTime, setStartTime] = useState("21:00");
+    const [endTime, setEndTime] = useState("22:00");
+    const [selectedCalendar, setSelectedCalendar] = useState<{ id: string; name: string; isDefault?: boolean } | null>(null);
     const [selectedColor, setSelectedColor] = useState<EventColor>("emerald");
-    const [showColorPicker, setShowColorPicker] = useState(false);
-    const [memo, setMemo] = useState(false);
+    const [location, setLocation] = useState("");
+    const [url, setUrl] = useState("");
+    const [memo, setMemo] = useState("");
+    const [repeatDates, setRepeatDates] = useState<Date[]>([]);
+    const [isRepeatModalOpen, setIsRepeatModalOpen] = useState(false);
 
+    // Prefill form when editing or set defaults when creating
     useEffect(() => {
-        if (selectedDate) {
-            setStartDate(selectedDate);
-            setEndDate(selectedDate);
+        if (isOpen && editingEvent) {
+            setTitle(editingEvent.title);
+            setAllDay(editingEvent.allDay);
+            setStartDate(new Date(editingEvent.start));
+            setEndDate(new Date(editingEvent.end));
+            if (!editingEvent.allDay) {
+                const s = new Date(editingEvent.start);
+                const e = new Date(editingEvent.end);
+                setStartTime(`${String(s.getHours()).padStart(2, '0')}:${String(s.getMinutes()).padStart(2, '0')}`);
+                setEndTime(`${String(e.getHours()).padStart(2, '0')}:${String(e.getMinutes()).padStart(2, '0')}`);
+            }
+            setSelectedColor(hexToColorName(editingEvent.color));
+            setLocation(editingEvent.location || "");
+            setUrl(editingEvent.url || "");
+            setMemo(editingEvent.memo || "");
+            setRepeatDates(editingEvent.repeatDates || []);
+            if (calendars.length > 0) {
+                setSelectedCalendar(calendars.find((c) => c.id === editingEvent.calendarId) || calendars[0]);
+            }
+        } else if (isOpen) {
+            if (selectedDate) {
+                setStartDate(selectedDate);
+                setEndDate(selectedDate);
+            }
+            if (calendars.length > 0) {
+                setSelectedCalendar(calendars.find((c) => c.isDefault) || calendars[0]);
+            }
         }
-        if (calendars.length > 0) {
-            setSelectedCalendar(calendars.find((c) => c.isDefault) || calendars[0]);
-        }
-    }, [selectedDate, calendars]);
+    }, [isOpen, editingEvent, selectedDate, calendars]);
 
     // Reset form when sheet closes
     useEffect(() => {
         if (!isOpen) {
             setTitle("");
             setAllDay(false);
-            setStartTime("14:00");
-            setEndTime("15:00");
-            setMemo(false);
-            setShowColorPicker(false);
+            setStartTime("21:00");
+            setEndTime("22:00");
+            setLocation("");
+            setUrl("");
+            setMemo("");
+            setRepeatDates([]);
         }
     }, [isOpen]);
 
@@ -96,285 +112,219 @@ export default function BottomSheet({
         const end = new Date(endDate);
         if (!allDay) end.setHours(endH, endM);
 
-        onSaveEvent({
+        const eventData = {
             title,
             start,
             end,
             allDay,
             color: EVENT_COLORS[selectedColor],
             calendarId: selectedCalendar?.id || "cal-1",
-            calendarName: selectedCalendar?.name || "恋人",
-        });
+            calendarName: selectedCalendar?.name || "カレンダー",
+            location: location || undefined,
+            url: url || undefined,
+            memo: memo || undefined,
+            repeatDates: repeatDates.length > 0 ? repeatDates : undefined,
+        };
+
+        if (editingEvent && onUpdateEvent) {
+            onUpdateEvent({ ...editingEvent, ...eventData });
+        } else {
+            onSaveEvent(eventData);
+        }
         onClose();
     };
 
     return (
-        <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <Drawer.Portal>
-                <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
-                <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 flex max-h-[92vh] flex-col rounded-t-2xl bg-white outline-none">
-                    {/* Drag Handle */}
-                    <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-border" />
+        <>
+            <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+                <Drawer.Portal>
+                    <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
+                    <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-10 flex max-h-[95vh] flex-col rounded-t-xl bg-[#F2F2F7] outline-none">
+                        {/* Drag Handle */}
+                        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-gray-300" />
 
-                    {/* Header with Tabs */}
-                    <div className="flex items-center justify-between px-4 pt-3 pb-0">
-                        <button
-                            onClick={onClose}
-                            className="rounded-full p-1 transition-colors hover:bg-muted active:bg-border"
-                        >
-                            <X size={22} className="text-muted-foreground" />
-                        </button>
-
-                        {/* Tab Switcher */}
-                        <div className="flex rounded-lg bg-muted p-0.5">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-4 pb-2 pt-2">
                             <button
-                                onClick={() => setActiveTab("event")}
-                                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${activeTab === "event"
-                                        ? "bg-white text-foreground shadow-sm"
-                                        : "text-muted-foreground hover:text-foreground"
-                                    }`}
+                                onClick={onClose}
+                                className="text-[17px] text-accent transition-opacity active:opacity-50"
                             >
-                                <CalendarDays size={14} />
-                                予定
+                                キャンセル
                             </button>
-                            <button
-                                onClick={() => setActiveTab("record")}
-                                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${activeTab === "record"
-                                        ? "bg-white text-foreground shadow-sm"
-                                        : "text-muted-foreground hover:text-foreground"
-                                    }`}
-                            >
-                                <Camera size={14} />
-                                記録
-                            </button>
-                        </div>
 
-                        {activeTab === "event" ? (
+                            <span className="text-[17px] font-semibold text-black">
+                                {editingEvent ? "予定を編集" : "新しい予定"}
+                            </span>
+
                             <button
                                 onClick={handleSaveEvent}
-                                className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors ${title.trim()
-                                        ? "bg-accent text-white active:bg-accent/80"
-                                        : "bg-muted text-muted-foreground"
+                                className={`text-[17px] font-semibold transition-opacity ${title.trim()
+                                    ? "text-accent active:opacity-50"
+                                    : "text-gray-400"
                                     }`}
                                 disabled={!title.trim()}
                             >
                                 保存
                             </button>
-                        ) : (
-                            <div className="w-[60px]" /> /* Spacer to balance layout */
-                        )}
-                    </div>
+                        </div>
 
-                    {/* Scrollable Body */}
-                    <div className="flex-1 overflow-y-auto px-4 pb-8 pt-3">
-                        {activeTab === "event" ? (
-                            /* ============= EVENT FORM ============= */
-                            <>
-                                {/* Title */}
-                                <input
-                                    type="text"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    placeholder="タイトル"
-                                    className="w-full text-xl font-bold text-foreground placeholder:text-border outline-none py-2 border-b border-border"
-                                    autoFocus
-                                />
+                        {/* Scrollable Body */}
+                        <div className="flex-1 overflow-y-auto pb-10">
+                            {/* Section: Title */}
+                            <div className="section-card">
+                                <div className="section-row">
+                                    <input
+                                        type="text"
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        placeholder="タイトル"
+                                        className="ios-input"
+                                        autoFocus
+                                    />
+                                    <Clock size={20} className="text-gray-400 ml-2" />
+                                </div>
+                            </div>
 
+                            {/* Section 3: Date & Time */}
+                            <div className="section-card">
                                 {/* All Day Toggle */}
-                                <div className="flex items-center justify-between py-3 border-b border-border">
-                                    <div className="flex items-center gap-3">
-                                        <Clock size={18} className="text-accent" />
-                                        <span className="text-sm text-foreground">終日</span>
-                                    </div>
-                                    <label className="relative inline-flex cursor-pointer items-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={allDay}
-                                            onChange={(e) => setAllDay(e.target.checked)}
-                                            className="peer sr-only"
-                                        />
-                                        <div className="h-6 w-11 rounded-full bg-border transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-accent peer-checked:after:translate-x-5" />
-                                    </label>
+                                <div className="section-row">
+                                    <span className="text-[16px] text-black">終日予定</span>
+                                    <input
+                                        type="checkbox"
+                                        className="ios-toggle"
+                                        checked={allDay}
+                                        onChange={(e) => setAllDay(e.target.checked)}
+                                    />
                                 </div>
 
                                 {/* Start Date/Time */}
-                                <div className="flex items-center justify-between py-3 border-b border-border">
-                                    <div className="flex items-center gap-3">
-                                        <CalendarDays size={18} className="text-accent" />
-                                        <span className="text-sm text-foreground">開始</span>
-                                    </div>
+                                <div className="section-row">
+                                    <span className="text-[16px] text-black">開始</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="rounded-lg bg-accent-light px-3 py-1 text-sm font-medium text-accent">
-                                            {format(startDate, "yyyy年M月d日 (E)", { locale: ja })}
-                                        </span>
+                                        <button className="ios-date-btn">
+                                            {format(startDate, "yyyy年M月d日(E)", { locale: ja })}
+                                        </button>
                                         {!allDay && (
                                             <input
                                                 type="time"
                                                 value={startTime}
                                                 onChange={(e) => setStartTime(e.target.value)}
-                                                className="rounded-lg bg-accent-light px-3 py-1 text-sm font-medium text-accent outline-none"
+                                                className="ios-date-btn outline-none"
                                             />
                                         )}
                                     </div>
                                 </div>
 
                                 {/* End Date/Time */}
-                                <div className="flex items-center justify-between py-3 border-b border-border">
-                                    <div className="flex items-center gap-3">
-                                        <CalendarDays size={18} className="text-accent" />
-                                        <span className="text-sm text-foreground">終了</span>
-                                    </div>
+                                <div className="section-row">
+                                    <span className="text-[16px] text-black">終了</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="rounded-lg bg-accent-light px-3 py-1 text-sm font-medium text-accent">
-                                            {format(endDate, "yyyy年M月d日 (E)", { locale: ja })}
-                                        </span>
+                                        <button className="ios-date-btn">
+                                            {format(endDate, "yyyy年M月d日(E)", { locale: ja })}
+                                        </button>
                                         {!allDay && (
                                             <input
                                                 type="time"
                                                 value={endTime}
                                                 onChange={(e) => setEndTime(e.target.value)}
-                                                className="rounded-lg bg-accent-light px-3 py-1 text-sm font-medium text-accent outline-none"
+                                                className="ios-date-btn outline-none"
                                             />
                                         )}
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* Memo toggle */}
-                                <div className="flex items-center justify-between py-3 border-b border-border">
-                                    <div className="flex items-center gap-3">
-                                        <BookmarkPlus size={18} className="text-accent" />
-                                        <span className="text-sm text-foreground">メモに保存する</span>
+                            {/* Section 4: Options */}
+                            <div className="section-card">
+                                {/* Multiple Days */}
+                                <div className="section-row nav-row">
+                                    <span className="text-[16px] text-black">複数日</span>
+                                    <div className="flex items-center">
+                                        <span className="text-[16px] text-gray-400">なし</span>
+                                        <ChevronRight size={16} className="nav-chevron" />
                                     </div>
-                                    <label className="relative inline-flex cursor-pointer items-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={memo}
-                                            onChange={(e) => setMemo(e.target.checked)}
-                                            className="peer sr-only"
-                                        />
-                                        <div className="h-6 w-11 rounded-full bg-border transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-accent peer-checked:after:translate-x-5" />
-                                    </label>
                                 </div>
 
-                                {/* Calendar Selection */}
-                                <button className="flex w-full items-center justify-between py-3 border-b border-border active:bg-muted transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <Users size={18} className="text-accent" />
-                                        <span className="text-sm text-foreground">
-                                            {selectedCalendar?.name || "カレンダー"}
-                                        </span>
-                                    </div>
-                                    <ChevronRight size={16} className="text-muted-foreground" />
-                                </button>
-
-                                {/* Color Selection */}
-                                <button
-                                    onClick={() => setShowColorPicker(!showColorPicker)}
-                                    className="flex w-full items-center justify-between py-3 border-b border-border active:bg-muted transition-colors"
+                                {/* Repeat */}
+                                <div
+                                    className="section-row nav-row"
+                                    onClick={() => setIsRepeatModalOpen(true)}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <Palette size={18} className="text-accent" />
-                                        <span className="text-sm text-foreground">
-                                            {EVENT_COLOR_LABELS[selectedColor]}
+                                    <span className="text-[16px] text-black">繰り返し</span>
+                                    <div className="flex items-center">
+                                        <span className="text-[16px] text-gray-400">
+                                            {repeatDates.length > 0 ? `${repeatDates.length}日選択` : "なし"}
                                         </span>
+                                        <ChevronRight size={16} className="nav-chevron" />
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <span
-                                            className="h-4 w-4 rounded-full"
-                                            style={{ backgroundColor: EVENT_COLORS[selectedColor] }}
-                                        />
-                                        <ChevronRight size={16} className="text-muted-foreground" />
-                                    </div>
-                                </button>
-
-                                {showColorPicker && (
-                                    <div className="flex flex-wrap gap-3 py-3 px-2 border-b border-border">
-                                        {(Object.keys(EVENT_COLORS) as EventColor[]).map((color) => (
-                                            <button
-                                                key={color}
-                                                onClick={() => {
-                                                    setSelectedColor(color);
-                                                    setShowColorPicker(false);
-                                                }}
-                                                className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${selectedColor === color ? "ring-2 ring-accent ring-offset-2" : ""
-                                                    }`}
-                                                style={{
-                                                    backgroundColor: EVENT_COLORS[color] + "20",
-                                                    color: EVENT_COLORS[color],
-                                                }}
-                                            >
-                                                <span
-                                                    className="h-3 w-3 rounded-full"
-                                                    style={{ backgroundColor: EVENT_COLORS[color] }}
-                                                />
-                                                {EVENT_COLOR_LABELS[color]}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Reminder */}
-                                <button className="flex w-full items-center justify-between py-3 border-b border-border active:bg-muted transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <Bell size={18} className="text-accent" />
-                                        <span className="text-sm text-foreground">10分前</span>
-                                    </div>
-                                    <ChevronRight size={16} className="text-muted-foreground" />
-                                </button>
-
-                                {/* Quick Action Tags */}
-                                <div className="flex flex-wrap gap-2 py-4">
-                                    {[
-                                        { icon: Repeat, label: "繰り返し" },
-                                        { icon: Hash, label: "日数カウント" },
-                                        { icon: MapPin, label: "場所" },
-                                    ].map(({ icon: Icon, label }) => (
-                                        <button
-                                            key={label}
-                                            className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors active:bg-border"
-                                        >
-                                            <Icon size={14} />
-                                            {label}
-                                        </button>
-                                    ))}
                                 </div>
 
-                                {/* Bottom Links */}
-                                <div className="flex flex-wrap gap-4 pb-4 text-muted-foreground">
-                                    {[
-                                        { icon: Link2, label: "URL" },
-                                        { icon: StickyNote, label: "メモ" },
-                                        { icon: CheckSquare, label: "チェックリスト" },
-                                    ].map(({ icon: Icon, label }) => (
-                                        <button
-                                            key={label}
-                                            className="flex items-center gap-1 text-xs transition-colors active:text-foreground"
-                                        >
-                                            <Icon size={14} />
-                                            {label}
-                                        </button>
-                                    ))}
+                                {/* Notification Alarm */}
+                                <div className="section-row nav-row">
+                                    <span className="text-[16px] text-black">通知アラーム</span>
+                                    <div className="flex items-center">
+                                        <span className="text-[16px] text-gray-400">なし</span>
+                                        <ChevronRight size={16} className="nav-chevron" />
+                                    </div>
                                 </div>
+                            </div>
 
-                                {/* Attachment */}
-                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground pb-6">
-                                    <Paperclip size={14} />
-                                    <span>添付ファイル</span>
+                            {/* Section 5: Text Inputs */}
+                            <div className="section-card">
+                                {/* Component for input rows to ensure consistency */}
+                                <div className="section-row">
+                                    <div className="flex items-center justify-center w-8 mr-2">
+                                        <span className="text-[16px] text-gray-400">場所</span>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={location}
+                                        onChange={(e) => setLocation(e.target.value)}
+                                        placeholder=""
+                                        className="ios-input"
+                                    />
                                 </div>
-                            </>
-                        ) : (
-                            /* ============= RECORD FORM ============= */
-                            <RecordForm
-                                selectedDate={selectedDate}
-                                onSave={(record) => {
-                                    onSaveRecord(record);
-                                    onClose();
-                                }}
-                            />
-                        )}
-                    </div>
-                </Drawer.Content>
-            </Drawer.Portal>
-        </Drawer.Root>
+                                <div className="section-row">
+                                    <div className="flex items-center justify-center w-8 mr-2">
+                                        <span className="text-[16px] text-gray-400">URL</span>
+                                    </div>
+                                    <input
+                                        type="url"
+                                        value={url}
+                                        onChange={(e) => setUrl(e.target.value)}
+                                        placeholder=""
+                                        className="ios-input"
+                                    />
+                                </div>
+                                <div className="section-row items-start">
+                                    <div className="flex items-center justify-center w-8 mr-2 pt-1">
+                                        <span className="text-[16px] text-gray-400">メモ</span>
+                                    </div>
+                                    <textarea
+                                        value={memo}
+                                        onChange={(e) => setMemo(e.target.value)}
+                                        placeholder=""
+                                        rows={3}
+                                        className="ios-input resize-none py-1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </Drawer.Content>
+                </Drawer.Portal>
+            </Drawer.Root>
+
+            {/* Repeat Calendar Modal */}
+            <RepeatCalendarModal
+                isOpen={isRepeatModalOpen}
+                onClose={() => setIsRepeatModalOpen(false)}
+                selectedDates={repeatDates}
+                onDatesChange={setRepeatDates}
+                eventTitle={title}
+                eventColor={EVENT_COLORS[selectedColor]}
+                baseDate={startDate}
+            />
+        </>
     );
 }

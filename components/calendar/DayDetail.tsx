@@ -3,19 +3,21 @@
 import React from "react";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { PlusCircle } from "lucide-react";
+import { Plus, ChevronRight, ChevronDown } from "lucide-react";
 import { CalendarEvent } from "@/lib/types";
 
 interface DayDetailProps {
     date: Date;
     events: CalendarEvent[];
     onAddEvent: () => void;
+    onEditEvent: (event: CalendarEvent) => void;
 }
 
 export default function DayDetail({
     date,
     events,
     onAddEvent,
+    onEditEvent,
 }: DayDetailProps) {
     const dayEvents = events.filter((e) => {
         const start = new Date(e.start);
@@ -24,57 +26,57 @@ export default function DayDetail({
     });
 
     return (
-        <div className="flex flex-col flex-1 bg-white">
+        <div className="flex flex-col bg-white" style={{ height: "100%" }}>
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                <h3 className="text-base font-bold text-foreground">
-                    {format(date, "M月d日 EEEE", { locale: ja })}
+            <div className="flex items-center justify-between px-4 py-2 bg-muted/30 border-b border-border">
+                <h3 className="text-sm font-bold text-foreground/80">
+                    {format(date, "yyyy年M月d日(EEE)", { locale: ja })}
                 </h3>
-                <button
-                    onClick={onAddEvent}
-                    className="flex items-center gap-1.5 rounded-full bg-foreground px-4 py-1.5 text-xs font-bold text-white transition-all hover:opacity-90 active:scale-95"
-                    aria-label="予定を追加"
-                >
-                    <PlusCircle size={16} strokeWidth={2.5} />
-                    <span>予定を追加</span>
-                </button>
+                <ChevronDown size={18} className="text-foreground/50" />
             </div>
 
-            {/* Event List */}
-            <div className="flex-1 overflow-y-auto px-4 py-4">
-                {dayEvents.length === 0 ? (
-                    <div className="flex items-center justify-center h-32 text-sm text-muted-foreground">
-                        予定がありません
-                    </div>
-                ) : (
-                    <div className="flex flex-col gap-2">
+            {/* Event List - fixed height with scroll */}
+            <div className="flex-1 overflow-y-auto px-4">
+                {dayEvents.length > 0 && (
+                    <div className="flex flex-col">
                         {dayEvents.map((evt) => (
                             <div
                                 key={evt.id}
-                                className="flex items-center gap-3 rounded-xl p-3 transition-colors active:bg-muted"
-                                style={{ borderLeft: `3px solid ${evt.color}` }}
+                                onClick={() => onEditEvent(evt)}
+                                className="flex items-center gap-3 py-3 border-b border-border/50 transition-colors active:bg-muted/30 cursor-pointer"
                             >
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium text-foreground">
-                                        {evt.title}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground mt-0.5">
-                                        {evt.allDay
-                                            ? "終日"
-                                            : `${format(new Date(evt.start), "HH:mm")} - ${format(
-                                                new Date(evt.end),
-                                                "HH:mm"
-                                            )}`}
-                                    </p>
-                                </div>
-                                <span
-                                    className="h-2 w-2 rounded-full flex-shrink-0"
-                                    style={{ backgroundColor: evt.color }}
+                                {/* Color ribbon bar */}
+                                <div
+                                    className="w-1 self-stretch rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: evt.color || "#a78bfa" }}
                                 />
+                                {/* Time label */}
+                                <span className="text-xs text-muted-foreground w-8 flex-shrink-0">
+                                    {evt.allDay
+                                        ? "終日"
+                                        : format(new Date(evt.start), "HH:mm")}
+                                </span>
+                                {/* Title */}
+                                <p className="flex-1 text-sm font-medium text-foreground truncate">
+                                    {evt.title}
+                                </p>
+                                {/* Arrow */}
+                                <ChevronRight size={16} className="text-muted-foreground/50 flex-shrink-0" />
                             </div>
                         ))}
                     </div>
                 )}
+            </div>
+
+            {/* Add Event Button */}
+            <div className="px-4 py-3 border-t border-border/30">
+                <button
+                    onClick={onAddEvent}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted active:scale-[0.99]"
+                >
+                    <Plus size={16} />
+                    <span>新しい予定の作成</span>
+                </button>
             </div>
         </div>
     );

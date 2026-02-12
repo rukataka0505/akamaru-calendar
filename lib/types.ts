@@ -10,6 +10,8 @@ export interface CalendarEvent {
   memo?: string;
   location?: string;
   url?: string;
+  repeatDates?: Date[]; // 繰り返し予定の日付リスト
+  notifications?: string[]; // 通知設定（例: ["10分前", "1日前"]）
 }
 
 export interface CalendarInfo {

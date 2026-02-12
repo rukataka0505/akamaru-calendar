@@ -4,15 +4,16 @@ import React, { useState, useCallback, useEffect } from "react";
 import { isSameDay } from "date-fns";
 import { Plus } from "lucide-react";
 import MonthView from "@/components/calendar/MonthView";
-import DayDetail from "@/components/calendar/DayDetail";
+import DayDetailDrawer from "@/components/calendar/DayDetailDrawer";
 import BottomSheet from "@/components/features/BottomSheet";
-import { RecordData } from "@/components/features/RecordForm";
+
 import AlbumTimeline from "@/components/album/AlbumTimeline";
 import MediaFeed from "@/components/album/MediaFeed";
 import BottomNav from "@/components/ui/BottomNav";
 import {
   getEventsForMonth,
   createEvent,
+  updateEvent,
   MOCK_CALENDARS,
 } from "@/lib/mockCalendarService";
 import { CalendarEvent, CalendarInfo, UploadedBy } from "@/lib/types";
@@ -26,6 +27,7 @@ export default function HomePage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [calendars] = useState<CalendarInfo[]>(MOCK_CALENDARS);
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [currentUserId] = useState<UploadedBy>("user-1");
 
   // Album state
@@ -68,12 +70,24 @@ export default function HomePage() {
     []
   );
 
-  const handleSaveRecord = useCallback((record: RecordData) => {
-    console.log("Record saved (mock):", record);
-    alert(`記録を保存しました: ${record.photos.length}枚の写真`);
+  const handleEditEvent = useCallback((event: CalendarEvent) => {
+    setEditingEvent(event);
+    setIsSheetOpen(true);
   }, []);
 
+  const handleUpdateEvent = useCallback(
+    async (updatedEvent: CalendarEvent) => {
+      const result = await updateEvent(updatedEvent);
+      setEvents((prev) => prev.map((e) => (e.id === result.id ? result : e)));
+      setEditingEvent(null);
+    },
+    []
+  );
+
+
+
   const handleOpenSheet = useCallback(() => {
+    setEditingEvent(null);
     if (!selectedDate) {
       setSelectedDate(new Date());
     }
@@ -105,50 +119,59 @@ export default function HomePage() {
     <div className="relative flex flex-col min-h-[100dvh] bg-white max-w-md mx-auto">
       {/* Calendar Tab */}
       {activeTab === "calendar" && (
-        <>
-          <MonthView
-            month={currentMonth}
-            selectedDate={selectedDate}
-            events={events}
-            onDateSelect={handleDateSelect}
-            onMonthChange={handleMonthChange}
-          />
 
-          {selectedDate && (
-            <DayDetail
-              date={selectedDate}
-              events={events}
-              onAddEvent={handleOpenSheet}
-            />
-          )}
-
-          {/* FAB */}
-          <button
-            onClick={handleOpenSheet}
-            className="fixed bottom-20 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-foreground text-white shadow-lg transition-all active:scale-95 hover:shadow-xl"
-            aria-label="追加"
+        <div className="flex flex-col h-[calc(100dvh-5rem)] overflow-hidden relative bg-white">
+          <div
+            className="flex-1 overflow-y-auto w-full no-scrollbar bg-white"
+            onClick={() => {
+              if (isSheetOpen) setIsSheetOpen(false);
+            }}
           >
-            <Plus size={28} strokeWidth={2} />
-          </button>
+            <MonthView
+              month={currentMonth}
+              selectedDate={selectedDate}
+              events={events}
+              onDateSelect={handleDateSelect}
+              onMonthChange={handleMonthChange}
+            />
+            {/* Spacer to allow scrolling past the drawer */}
+            <div className={`w-full transition-all duration-300 ${selectedDate ? "h-[45vh]" : "h-0"}`} />
+          </div>
+
+          {/* Day Detail Panel */}
+          {selectedDate && !isSheetOpen && (
+            <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
+              <DayDetailDrawer
+                selectedDate={selectedDate}
+                events={events}
+                onAddEvent={handleOpenSheet}
+                onEditEvent={handleEditEvent}
+                onClose={() => setSelectedDate(null)}
+              />
+            </div>
+          )}
 
           <BottomSheet
             isOpen={isSheetOpen}
-            onClose={() => setIsSheetOpen(false)}
+            onClose={() => { setIsSheetOpen(false); setEditingEvent(null); }}
             selectedDate={selectedDate}
             calendars={calendars}
             onSaveEvent={handleSaveEvent}
-            onSaveRecord={handleSaveRecord}
+            editingEvent={editingEvent}
+            onUpdateEvent={handleUpdateEvent}
           />
-        </>
+        </div>
       )}
 
       {/* Album Tab */}
       {activeTab === "album" && (
-        <AlbumTimeline
-          favorites={favorites}
-          onOpenFeed={handleOpenFeed}
-          currentUserId={currentUserId}
-        />
+        <>
+          <AlbumTimeline
+            favorites={favorites}
+            onOpenFeed={handleOpenFeed}
+            currentUserId={currentUserId}
+          />
+        </>
       )}
 
       {/* Media Feed Overlay */}
@@ -162,7 +185,11 @@ export default function HomePage() {
       )}
 
       {/* Bottom Navigation */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onAddClick={handleOpenSheet}
+      />
     </div>
   );
 }

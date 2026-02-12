@@ -97,6 +97,17 @@ export async function createEvent(
     return newEvent;
 }
 
+export async function updateEvent(
+    updatedEvent: CalendarEvent
+): Promise<CalendarEvent> {
+    await new Promise((r) => setTimeout(r, 200));
+    const index = events.findIndex((e) => e.id === updatedEvent.id);
+    if (index !== -1) {
+        events[index] = updatedEvent;
+    }
+    return updatedEvent;
+}
+
 export async function getCalendars(): Promise<CalendarInfo[]> {
     await new Promise((r) => setTimeout(r, 50));
     return MOCK_CALENDARS;

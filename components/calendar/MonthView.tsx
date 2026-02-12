@@ -3,7 +3,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { format, isSameDay, isToday, isSameMonth, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek } from "date-fns";
 import { ja } from "date-fns/locale";
-
+import { CalendarEvent } from "@/lib/types";
 
 interface MonthViewProps {
     month: Date;
@@ -97,20 +97,20 @@ export default function MonthView({
 
     return (
         <div
-            className="w-full"
+            className="w-full h-full flex flex-col bg-white"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
         >
             {/* Month Header */}
-            <div className="flex items-center justify-center px-4 py-3 relative">
+            <div className="flex items-center justify-center px-4 py-3 relative shrink-0">
                 <h2 className="text-lg font-bold text-foreground">
                     {format(month, "yyyy年M月", { locale: ja })}
                 </h2>
             </div>
 
             {/* Weekday Headers */}
-            <div className="grid grid-cols-7 border-b border-border">
+            <div className="grid grid-cols-7 border-b border-border shrink-0">
                 {dayNames.map((name, i) => (
                     <div
                         key={name}
@@ -123,9 +123,9 @@ export default function MonthView({
             </div>
 
             {/* Calendar Grid */}
-            <div className="border-b border-border">
+            <div className="flex-1 flex flex-col border-b border-border">
                 {weeks.map((week, weekIdx) => (
-                    <div key={weekIdx} className="grid grid-cols-7">
+                    <div key={weekIdx} className="grid grid-cols-7 flex-1 border-t border-border/50 first:border-t-0">
                         {week.map((day) => {
                             const dateKey = format(day, "yyyy-MM-dd");
                             const dayEvents = eventsByDate.get(dateKey) || [];
@@ -141,7 +141,7 @@ export default function MonthView({
                                     key={dateKey}
                                     onClick={() => onDateSelect(day)}
                                     className={`
-                    relative flex flex-col items-center py-1 min-h-[52px] transition-spring
+                    relative flex flex-col items-center py-1 h-full w-full transition-colors
                     ${isSelected ? "bg-muted" : ""}
                     ${!isCurrentMonth ? "opacity-30" : ""}
                     active:bg-border

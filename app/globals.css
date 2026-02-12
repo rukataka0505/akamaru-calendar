@@ -204,3 +204,107 @@ body {
 .safe-top {
   padding-top: env(safe-area-inset-top);
 }
+
+/* === iOS-style Section Cards & Inputs === */
+.ios-bg {
+  background-color: #F2F2F7;
+}
+
+.section-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.section-row {
+  background: white;
+  padding: 12px 16px;
+  border-bottom: 0.5px solid #E5E5EA;
+  /* iOS separator color */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+}
+
+.section-row:last-child {
+  border-bottom: none;
+}
+
+.nav-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.nav-row:active {
+  background-color: #E5E5EA;
+}
+
+.nav-chevron {
+  color: #C7C7CC;
+  margin-left: 8px;
+}
+
+/* iOS Date Picker Button Style */
+.ios-date-btn {
+  background-color: #EEEEEF;
+  color: #000000;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.ios-date-btn:active {
+  background-color: #D1D1D6;
+}
+
+/* iOS Toggle Switch */
+.ios-toggle {
+  appearance: none;
+  width: 51px;
+  height: 31px;
+  background-color: #E9E9EA;
+  border-radius: 15.5px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.ios-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s cubic-bezier(0.3, 0.0, 0.2, 1);
+}
+
+.ios-toggle:checked {
+  background-color: #34C759;
+  /* iOS Green */
+}
+
+.ios-toggle:checked::after {
+  transform: translateX(20px);
+}
+
+.ios-input {
+  width: 100%;
+  font-size: 16px;
+  /* Prevent zoom on iOS */
+  color: #000;
+  background: transparent;
+  outline: none;
+}
+
+.ios-input::placeholder {
+  color: #C7C7CC;
+}
