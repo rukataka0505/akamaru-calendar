@@ -17,8 +17,8 @@ import {
   getEventsForMonth,
   createEvent,
   updateEvent,
-  MOCK_CALENDARS,
 } from "@/lib/calendarService";
+import { MOCK_CALENDARS } from "@/lib/constants";
 import { useUser } from "@/components/ui/UserSwitcher";
 import { CalendarEvent, CalendarInfo, UploadedBy } from "@/lib/types";
 
