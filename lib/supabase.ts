@@ -8,6 +8,11 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export function createAdminClient() {
     if (!supabaseUrl || !supabaseServiceKey) {
+        console.error("Missing Supabase environment variables:", {
+            supabaseUrl: !!supabaseUrl,
+            supabaseKey: !!supabaseServiceKey,
+            NODE_ENV: process.env.NODE_ENV
+        });
         throw new Error("Missing Supabase environment variables");
     }
 

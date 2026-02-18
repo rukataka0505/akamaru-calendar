@@ -43,6 +43,8 @@ export async function getEvents(startDate: Date, endDate: Date): Promise<Calenda
 
         if (error) {
             console.error("Failed to fetch events:", error);
+            // Log full error details
+            console.error("Error details:", JSON.stringify(error, null, 2));
             return [];
         }
 
