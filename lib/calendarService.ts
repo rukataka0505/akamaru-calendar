@@ -26,26 +26,31 @@ function mapEvent(row: any): CalendarEvent {
 }
 
 export async function getEvents(startDate: Date, endDate: Date): Promise<CalendarEvent[]> {
-    const supabase = createAdminClient();
+    try {
+        const supabase = createAdminClient();
 
-    // In UTC for query
-    const startIso = startDate.toISOString();
-    const endIso = endDate.toISOString();
+        // In UTC for query
+        const startIso = startDate.toISOString();
+        const endIso = endDate.toISOString();
 
-    // Query events that overlap with the range [startDate, endDate]
-    // event_start <= query_end AND event_end >= query_start
-    const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .lte("start_time", endIso)
-        .gte("end_time", startIso);
+        // Query events that overlap with the range [startDate, endDate]
+        // event_start <= query_end AND event_end >= query_start
+        const { data, error } = await supabase
+            .from("events")
+            .select("*")
+            .lte("start_time", endIso)
+            .gte("end_time", startIso);
 
-    if (error) {
-        console.error("Failed to fetch events:", error);
+        if (error) {
+            console.error("Failed to fetch events:", error);
+            return [];
+        }
+
+        return data.map(mapEvent);
+    } catch (error) {
+        console.error("Unexpected error in getEvents:", error);
         return [];
     }
-
-    return data.map(mapEvent);
 }
 
 export async function getEventsForMonth(year: number, month: number): Promise<CalendarEvent[]> {

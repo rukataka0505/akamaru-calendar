@@ -268,6 +268,9 @@ export default function BottomSheet({
                 <Drawer.Portal>
                     <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
                     <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-10 flex max-h-[95vh] flex-col rounded-t-xl bg-[#F2F2F7] outline-none">
+                        <Drawer.Title className="sr-only">
+                            {editingEvent ? "予定を編集" : "新しい予定"}
+                        </Drawer.Title>
                         {/* Drag Handle */}
                         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-gray-300" />
 
