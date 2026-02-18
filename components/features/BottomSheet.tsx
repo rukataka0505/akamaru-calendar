@@ -271,6 +271,9 @@ export default function BottomSheet({
                         <Drawer.Title className="sr-only">
                             {editingEvent ? "予定を編集" : "新しい予定"}
                         </Drawer.Title>
+                        <Drawer.Description className="sr-only">
+                            予定の詳細を入力して保存します
+                        </Drawer.Description>
                         {/* Drag Handle */}
                         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-gray-300" />
 

@@ -14,8 +14,8 @@ function mapEvent(row: any): CalendarEvent {
         end: new Date(row.end_time),
         allDay: row.all_day,
         color: row.color,
-        calendarId: row.calendar_id,
-        calendarName: row.calendar_name,
+        calendarId: row.calendar_id || "cal-1", // Fallback if column missing
+        calendarName: row.calendar_name || "カレンダー", // Fallback if column missing
         memo: row.memo,
         location: row.location,
         url: row.url,
@@ -74,8 +74,9 @@ export async function createEvent(event: Omit<CalendarEvent, "id">): Promise<Cal
             end_time: event.end.toISOString(),
             all_day: event.allDay,
             color: event.color,
-            calendar_id: event.calendarId,
-            calendar_name: event.calendarName,
+            // calendar_id and calendar_name columns are missing in DB, so we omit them
+            // calendar_id: event.calendarId,
+            // calendar_name: event.calendarName,
             memo: event.memo,
             location: event.location,
             url: event.url,
@@ -105,8 +106,9 @@ export async function updateEvent(updatedEvent: CalendarEvent): Promise<Calendar
             end_time: updatedEvent.end.toISOString(),
             all_day: updatedEvent.allDay,
             color: updatedEvent.color,
-            calendar_id: updatedEvent.calendarId,
-            calendar_name: updatedEvent.calendarName,
+            // calendar_id and calendar_name columns are missing in DB, so we omit them
+            // calendar_id: updatedEvent.calendarId,
+            // calendar_name: updatedEvent.calendarName,
             memo: updatedEvent.memo,
             location: updatedEvent.location,
             url: updatedEvent.url,
