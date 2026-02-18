@@ -1,4 +1,3 @@
-
 import { createClient } from "@supabase/supabase-js";
 
 // Note: This client should ONLY be used in Server Actions or API Routes.

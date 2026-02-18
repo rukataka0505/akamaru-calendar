@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { drive } from "@/lib/google";
 import { createAdminClient } from "@/lib/supabase";
-import { verifyPin } from "@/lib/auth/pin";
 import { Readable } from "stream";
 
 // Helper to convert Web Stream to Node Stream
@@ -21,25 +20,6 @@ function webStreamToNodeStream(stream: ReadableStream<Uint8Array>): Readable {
 }
 
 export async function POST(req: NextRequest) {
-    // 1. PIN Check
-    // The client should send PIN in headers or cookie.
-    // Since verifyPin checks cookie, we can use that logic or verify header.
-    // Let's check headers first for API-like access, or fallback to cookie.
-    // However, verifyPin is a Server Action that checks request cookies.
-    // But inside Route Handlers, cookies() is available.
-
-    // Custom check:
-    const pinHeader = req.headers.get("x-app-pin");
-    // Or check cookie manually? verifyPin() uses cookies(), so calling it might work if it's designed for it.
-    // But verifyPin() implementation sets cookie if valid. Here we just want to verify.
-    // Let's implement a simpler check or trust middleware/cookie.
-    // Since we are migrating from simple verifyPin(), let's check cookie "app-pin-token".
-    const cookiePin = req.cookies.get("app-pin-token");
-    const isAuthorized = cookiePin?.value === "valid";
-
-    if (!isAuthorized) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     try {
         const formData = await req.formData();

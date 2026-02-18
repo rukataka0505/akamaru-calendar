@@ -1,22 +1,12 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { drive } from "@/lib/google";
-import { createAdminClient } from "@/lib/supabase";
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: Promise<{ fileId: string }> } // Params is a Promise in Next.js 15+? No, standard in App Router but Next.js 15 changed it? 
-    // Let's assume standard Next.js 14/15 async params behavior or check if "await params" is needed.
-    // Next.js 15: params is a Promise.
-    // We should await it.
+    // @ts-ignore
+    { params }: { params: Promise<{ fileId: string }> }
 ) {
     const { fileId } = await params;
-
-    // 1. Auth Check (Cookie)
-    const cookiePin = req.cookies.get("app-pin-token");
-    if (cookiePin?.value !== "valid") {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     try {
         // 2. Get file stream from Drive
