@@ -6,10 +6,13 @@ const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REFRESH_TOKEN = process.env.GOOGLE_REFRESH_TOKEN;
 
+// Redirect URI determination
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 export const auth = new google.auth.OAuth2(
     CLIENT_ID,
     CLIENT_SECRET,
-    "http://localhost:3000" // Redirect URI (not used for refresh token flow but required)
+    APP_URL
 );
 
 if (REFRESH_TOKEN) {

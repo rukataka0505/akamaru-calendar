@@ -77,6 +77,9 @@ app/
 APP_PIN=0505
 NEXT_PUBLIC_DEFAULT_USER=user-1
 
+# App URL (Optional, defaults to http://localhost:3000)
+NEXT_PUBLIC_APP_URL=https://akaruka.r-k.app
+
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=...
 SUPABASE_SERVICE_ROLE_KEY=...  # for Server Actions
